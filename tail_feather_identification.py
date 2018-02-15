@@ -21,8 +21,8 @@ def displayig_boxes(contours_triangles,contours_squares,color):
         cv2.rectangle(canvas,(x,y),(x+w,y+h),[0,255,0])
         cv2.rectangle(frame_non_blur,(x,y),(x+w,y+h),[0,250,255])
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(canvas, color+' Square',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
-        cv2.putText(frame_non_blur, color+' Square',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
+        cv2.putText(canvas, color+' Rectangle',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
+        cv2.putText(frame_non_blur, color+' Rectangle',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
 
 def sorting_contours(mask):
     try:
@@ -83,14 +83,14 @@ sat_yellow_low = 100
 sat_yellow_high = 255
 val_yellow_low = 30
 val_yellow_high = 255
-
-hue_orange_low = 10
+'''
+hue_orange_low = 5
 hue_orange_high = 20
-sat_orange_low = 100
+sat_orange_low = 0
 sat_orange_high = 255
-val_orange_low = 70
+val_orange_low = 0
 val_orange_high = 255
-
+'''
 '''
 #Values for USB-camera
 #NEED TO TUNE BLUE VALUES AGAIN
@@ -107,6 +107,13 @@ sat_red_low = 100
 sat_red_high = 255
 val_red_low = 100
 val_red_high = 255
+
+hue_yellow_low = 20
+hue_yellow_high = 40
+sat_yellow_low = 100
+sat_yellow_high = 255
+val_yellow_low = 30
+val_yellow_high = 255
 '''
 
 while True:
@@ -240,20 +247,20 @@ while True:
             cv2.rectangle(canvas,(x,y),(x+w,y+h),[0,255,0])
             cv2.rectangle(frame_non_blur,(x,y),(x+w,y+h),[0,250,255])
             font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(frame_non_blur, 'Ginger found!',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
-    
+            cv2.putText(frame_non_blur, 'Kill it with fire!',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
+    '''
     except(ValueError, ZeroDivisionError):
         pass
-    '''
+    
 
     hsv_canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2HSV)
     res = cv2.bitwise_and(frame,frame, mask = mask)
     res += canvas
     frame += hsv_canvas
     #cv2.imshow('frame', frame)
-    #cv2.imshow('mask', mask)
+    cv2.imshow('mask', mask)
     #cv2.imshow('hsv_canvas', hsv_canvas)
-    #cv2.imshow('res', res)
+    cv2.imshow('res', res)
     cv2.imshow('frame_non_blur',frame_non_blur)
 
     k = cv2.waitKey(5) & 0xFF
