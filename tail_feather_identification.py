@@ -17,9 +17,9 @@ def displayig_boxes(contours_triangles,contours_squares,color):
         M = cv2.moments(con)
         center = (int(M["m10"]/M["m00"]),int(M["m01"]/M["m00"]))
         x,y,w,h = cv2.boundingRect(con)
-
-        cv2.rectangle(canvas,(x,y),(x+w,y+h),[0,255,0])
-        cv2.rectangle(frame_non_blur,(x,y),(x+w,y+h),[0,250,255])
+        #cv2.rectangle(canvas,(x,y),(x+w,y+h),[0,255,0])
+        #cv2.rectangle(frame_non_blur,(x,y),(x+w,y+h),[0,250,255])
+        cv2.drawContours( frame_non_blur, con, -1, (0, 255, 0), 3 )
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(canvas, color+' Rectangle',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
         cv2.putText(frame_non_blur, color+' Rectangle',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
@@ -36,9 +36,10 @@ def sorting_contours(mask):
         contours_squares = []
         for con in contours_area:
             perimeter = cv2.arcLength(con, True)
-            area = cv2.contourArea(con)
             if perimeter == 0:
                 break
+            area = cv2.contourArea(con)
+            con = cv2.approxPolyDP(con,0.2*perimeter,True)
             circularity = 4*math.pi*area/(perimeter*perimeter)
             circularity = 1-circularity
             if circ_tri_low < circularity < circ_tri_high:
@@ -50,19 +51,52 @@ def sorting_contours(mask):
         pass
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1) #Which camrea
 
 
 circ_tri_low = 0.4
-circ_tri_high = 0.58
+circ_tri_high = 0.55
 
-circ_squ_low = 0.58
+circ_squ_low = 0.55
 circ_squ_high = 0.8
 
 min_area = 500
 max_area =200000
+def web_cam_value_storage():
 
-#Values for web-camera
+    '''
+    #Values for web-camera
+    hue_blue_low = 100 #Color angle min
+    hue_blue_high = 130 #Color angle max
+    sat_blue_low = 100 #How smudged/white
+    sat_blue_high = 255 #How clear
+    val_blue_low = 80 #How dark
+    val_blue_high = 255 #How bright
+
+    hue_red_low = 176
+    hue_red_high = 3
+    sat_red_low = 120
+    sat_red_high = 255
+    val_red_low = 100
+    val_red_high = 255
+
+    hue_yellow_low = 20
+    hue_yellow_high = 40
+    sat_yellow_low = 100
+    sat_yellow_high = 255
+    val_yellow_low = 80
+    val_yellow_high = 255
+    '''
+    '''
+    hue_orange_low = 5
+    hue_orange_high = 20
+    sat_orange_low = 0
+    sat_orange_high = 255
+    val_orange_low = 0
+    val_orange_high = 255
+    '''
+
+#Values for USB-camera
 hue_blue_low = 100 #Color angle min
 hue_blue_high = 130 #Color angle max
 sat_blue_low = 100 #How smudged/white
@@ -70,51 +104,20 @@ sat_blue_high = 255 #How clear
 val_blue_low = 100 #How dark
 val_blue_high = 255 #How bright
 
-hue_red_low = 176
-hue_red_high = 2
-sat_red_low = 150
+hue_red_low = 179
+hue_red_high = 7
+sat_red_low = 120
 sat_red_high = 255
 val_red_low = 100
 val_red_high = 255
 
-hue_yellow_low = 20
-hue_yellow_high = 40
+hue_yellow_low = 25
+hue_yellow_high = 35
 sat_yellow_low = 100
 sat_yellow_high = 255
-val_yellow_low = 30
+val_yellow_low = 80
 val_yellow_high = 255
-'''
-hue_orange_low = 5
-hue_orange_high = 20
-sat_orange_low = 0
-sat_orange_high = 255
-val_orange_low = 0
-val_orange_high = 255
-'''
-'''
-#Values for USB-camera
-#NEED TO TUNE BLUE VALUES AGAIN
-hue_blue_low = 175
-hue_blue_high = 15
-sat_blue_low = 100
-sat_blue_high = 255
-val_blue_low = 100
-val_blue_high = 255
 
-hue_red_low = 175
-hue_red_high = 15
-sat_red_low = 100
-sat_red_high = 255
-val_red_low = 100
-val_red_high = 255
-
-hue_yellow_low = 20
-hue_yellow_high = 40
-sat_yellow_low = 100
-sat_yellow_high = 255
-val_yellow_low = 30
-val_yellow_high = 255
-'''
 
 while True:
     _, frame = cap.read()
@@ -141,12 +144,12 @@ while True:
     hsv_upper_yellow = np.array([hue_yellow_high,sat_yellow_high,val_yellow_high])
     canvas = np.zeros((shape[0],shape[1],3), np.uint8)
     masky = cv2.inRange(hsv, hsv_lower_yellow, hsv_upper_yellow)
-
+    '''
     hsv_lower_orange = np.array([hue_orange_low,sat_orange_low,val_orange_low])
     hsv_upper_orange = np.array([hue_orange_high,sat_orange_high,val_orange_high])
     canvas = np.zeros((shape[0],shape[1],3), np.uint8)
     masko = cv2.inRange(hsv, hsv_lower_orange, hsv_upper_orange)
-
+    '''
     mask = maskr+maskb+masky
     try:
         _, cont, _ = cv2.findContours(maskb, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -170,7 +173,6 @@ while True:
                 contours_squares.append(con)
 
         displayig_boxes(contours_triangles,contours_squares, 'Blue')
-
     except(ValueError, ZeroDivisionError):
         pass
 
@@ -248,10 +250,9 @@ while True:
             cv2.rectangle(frame_non_blur,(x,y),(x+w,y+h),[0,250,255])
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(frame_non_blur, 'Kill it with fire!',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
-    '''
     except(ValueError, ZeroDivisionError):
         pass
-    
+    '''
 
     hsv_canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2HSV)
     res = cv2.bitwise_and(frame,frame, mask = mask)
