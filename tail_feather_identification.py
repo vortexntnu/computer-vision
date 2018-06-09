@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import math
-def displayig_boxes(contours_triangles,contours_squares,color):
+def displaying_boxes(contours_triangles,contours_squares,color):
     for con in contours_triangles:
         M = cv2.moments(con)
         center = (int(M["m10"]/M["m00"]),int(M["m01"]/M["m00"]))
@@ -24,7 +24,7 @@ def displayig_boxes(contours_triangles,contours_squares,color):
         cv2.putText(canvas, color+' Rectangle',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
         cv2.putText(frame_non_blur, color+' Rectangle',(x,y),font,1,(0,255,0),2,cv2.LINE_AA)
 
-def sorting_contours(mask):
+def sorting_contours(mask,color):
     try:
         _, cont, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         contours_area = []
@@ -39,19 +39,18 @@ def sorting_contours(mask):
             if perimeter == 0:
                 break
             area = cv2.contourArea(con)
-            con = cv2.approxPolyDP(con,0.2*perimeter,True)
+            #con = cv2.approxPolyDP(con,0.2*perimeter,True)
             circularity = 4*math.pi*area/(perimeter*perimeter)
             circularity = 1-circularity
             if circ_tri_low < circularity < circ_tri_high:
                 contours_triangles.append(con)
             if circ_squ_low < circularity < circ_squ_high:
                 contours_squares.append(con)
-        return(contours_triangles,contours_squares)
+        displaying_boxes(contours_triangles,contours_squares, color)
     except(ValueError, ZeroDivisionError):
         pass
 
-
-cap = cv2.VideoCapture(1) #Which camrea
+cap = cv2.VideoCapture(0) #Which camrea
 
 
 circ_tri_low = 0.4
@@ -63,8 +62,6 @@ circ_squ_high = 0.8
 min_area = 500
 max_area =200000
 def web_cam_value_storage():
-
-    '''
     #Values for web-camera
     hue_blue_low = 100 #Color angle min
     hue_blue_high = 130 #Color angle max
@@ -87,7 +84,6 @@ def web_cam_value_storage():
     val_yellow_low = 80
     val_yellow_high = 255
     '''
-    '''
     hue_orange_low = 5
     hue_orange_high = 20
     sat_orange_low = 0
@@ -102,21 +98,21 @@ hue_blue_high = 130 #Color angle max
 sat_blue_low = 100 #How smudged/white
 sat_blue_high = 255 #How clear
 val_blue_low = 100 #How dark
-val_blue_high = 255 #How bright
+val_blue_high = 210 #How bright
 
-hue_red_low = 179
-hue_red_high = 7
-sat_red_low = 120
+hue_red_low = 177
+hue_red_high = 8
+sat_red_low = 105
 sat_red_high = 255
-val_red_low = 100
-val_red_high = 255
+val_red_low = 85
+val_red_high = 210
 
 hue_yellow_low = 25
 hue_yellow_high = 35
 sat_yellow_low = 100
 sat_yellow_high = 255
 val_yellow_low = 80
-val_yellow_high = 255
+val_yellow_high = 210
 
 
 while True:
@@ -151,6 +147,13 @@ while True:
     masko = cv2.inRange(hsv, hsv_lower_orange, hsv_upper_orange)
     '''
     mask = maskr+maskb+masky
+    sorting_contours(maskb,'Blue')
+
+    sorting_contours(maskr,'Red')
+
+    sorting_contours(masky,'Yellow')
+
+    '''
     try:
         _, cont, _ = cv2.findContours(maskb, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         contours_area = []
@@ -227,6 +230,7 @@ while True:
 
     except(ValueError, ZeroDivisionError):
         pass
+    '''
     '''
     try:
         _, cont, _ = cv2.findContours(masko, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
