@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # ***
-# Remove all previous installations of OpenCV
-# and install necessary dependencies.
+# Removes old version of OpenCV and installs correct version.
+# In addition installs ROS kinetic, nginx-server, libwebsocket
+# and adds multiple relevant libraries.
 #
+# Inspired by weedle1912/detection-and-tracking
 # ***
 
 # Colors
@@ -12,7 +14,8 @@ BL='\033[0;34m' # Blue
 NC='\033[0m'    # No Color
 
 #OpenCV version
-IN_DIR="${HOME}/src"
+#IN_DIR="${HOME}/src"
+IN_DIR= "/home/nvidia"
 OPENCV_V="3.4.0"
 
 # Path
@@ -32,6 +35,9 @@ clear
 sudo apt-get update
 sudo apt-get upgrade
 
+# -- if this script has been obtained without git -- 
+
+sudo apt-get install git-core
 
 # --- OpenCV install preparations ---
 
@@ -89,25 +95,18 @@ sudo apt-get install -y python-dev python-pip python-tk
 #sudo pip install numpy
 
 # Install dependencies for python 3 (optional)
-sudo apt-get install python3-dev python3-pip python3-tk
-sudo pip3 install numpy
+sudo apt-get install -y python3-dev python3-pip python3-tk
+sudo pip3 install -y numpy
 
 
 # --OpenCV install ---
 
 printf "${BL}[i] OpenCV ${OPENCV_V} environment init:${NC}\n"
 
-# --- Install directory ---
-
-printf "${BL}[i] (1/3) Making source dir '${IN_DIR}':${NC}\n"
-
-mkdir ${IN_DIR}
-cd ${IN_DIR}
-
 # --- Download OpenCV source ---
 
 printf "{BL}[i] Installing packages for OpenCV:${NC}\n"
-sudo apt-get install libeigen3-dev libgflags-dev libgoogle-glog-dev libhdf5-dev 
+sudo apt-get install -y libeigen3-dev libgflags-dev libgoogle-glog-dev libhdf5-dev 
 
 printf "${BL}[i] (2/3) Dowloading OpenCV source v${OPENCV_V}:${NC}\n"
 
@@ -118,7 +117,8 @@ unzip opencv_contrib-${OPENCV_V}.zip
 sudo mv  -v ~/opencv_contrib-${OPENCV_V} ~/opencv-${OPENCV_V}
 
 # --- Build OpenCV ---
-cd ${IN_DIR}/opencv-${OPENCV_V}
+#cd ${IN_DIR}/opencv-${OPENCV_V}
+cd /home/nvidia/opencv-${OPENCV_V}
 mkdir build
 cd build
 
@@ -144,34 +144,8 @@ printf "${BL}[i] Setting up virtual environment '${ENV_NAME}':${NC}\n"
 
 printf "${BL}[i] (1/3) Installing dependencies:${NC}\n" 
 
-sudo apt-get install libopencv-dev python-opencv
-sudo apt-get install python-pip python-dev python-virtualenv
-
-# -- Environment --
-
-printf "${BL}[i] (2/3) Setting up environment in ~/${ENV_NAME}:${NC}\n"
-
-mkdir ~/${ENV_NAME}
-virtualenv ~/${ENV_NAME}
-# Activate
-source ~/${ENV_NAME}/bin/activate
-
-# -- Requirements --
-
-printf "${BL}[i] (3/3) Installing requirements:${NC}\n"
-if [ -e requirements.txt ]
-then
-    sudo pip install -r requirements.txt
-else
-    printf "${RD}[!] Requirements not installed: File not found.${NC}\n"
-fi
-
-# -- Info --
-printf "${BL}[i] Activate virtual environment:\n"
-printf "${GR}    source ~/${ENV_NAME}/bin/activate${NC}\n"
-printf "${BL}[i] Deactivate virtual environment:${NC}\n"
-printf "${GR}    deactivate${NC}\n"
-
+sudo apt-get install -y libopencv-dev python-opencv
+sudo apt-get install -y python-pip python-dev python-virtualenv
 
 
 # --- Installing ROS ---
@@ -181,44 +155,44 @@ printf "{BL}[i]Installing ROS:${NC}\n"
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
 sudo apt-get update
-sudo apt-get install ros-kinetic-desktop
+sudo apt-get install -y ros-kinetic-desktop
 sudo rosdep init
 rosdep update
 echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
-sudo apt-get install python-rosinstall python-rosinstall-generator python-wstool build-essential
-
+sudo apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
+cd
 
 # -- Get LibWebsockets --
 
 printf "{BL}[i]Installing LibWebsockets:${NC}\n"
 
-wget https://github.com/warmcat/libwebsockets/archive/1.7.1.zip -O libwebsockets_1.7.1.zip
+wget https://github.com/warmcat/libwebsockets/archive/v1.7.1.zip -O libwebsockets_1.7.1.zip
 unzip libwebsockets_1.7.1.zip
-cd libwebsockets_1.7.1
+cd libwebsockets-1.7.1
 mkdir build
 cd build
 sudo cmake ..
 sudo make
 sudo make install
-ldconfig
+sudo ldconfig
 cd
 
 # -- Get Nginx-server --
 
 printf "{BL}[i]Installing Nginx-server:${NC}\n"
 
-sudo apt-get install build-essential libpcre3 libpcre3-dev libssl-dev
+sudo apt-get install -y build-essential libpcre3 libpcre3-dev libssl-dev
 wget http://nginx.org/download/nginx-1.6.2.tar.gz
 wget https://github.com/arut/nginx-rtmp-module/archive/master.zip
 tar -zxvf nginx-1.6.2.tar.gz
 unzip master.zip
 cd nginx-1.6.2
-./configure --with-http_ssl_module --add-module=../nginx-rtmp-module-master
+sudo ./configure --with-http_ssl_module --add-module=../nginx-rtmp-module-master
 sudo make
 sudo make install
 cd ..
-rm -R nginx-1.6.2
+sudo rm -R nginx-1.6.2
 cd
 
 
@@ -226,7 +200,7 @@ cd
 
 printf "{BL}[i]Adding necessary packages for Gstreamer:${NC}\n"
 
-sudo apt-get install libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0 -plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-doc gstreamer1.0-tools
+sudo apt-get install -y libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0 -plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-doc gstreamer1.0-tools
 
 printf "{BL}[i]Installation done:${NC}\n"
 
